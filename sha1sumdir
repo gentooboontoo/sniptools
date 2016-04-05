@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -e
+set -o pipefail
+
+die() {
+  >&2 echo $1
+  exit 1
+}
+
+usage() {
+  cat <<EOF
+usage: $(basename "$0") DIR
+EOF
+}
+
+[ $# -ne 1 ] && die "$(usage)"
+
+DIR=$1
+ESCAPED_DIR=$(echo ${DIR} | sed 's/\//\\\//g')
+
+DIRSHA1=$(find "${DIR}" -type f -print0 | \
+           sort --zero-terminated | \
+           xargs --null sha1sum | \
+           sed "s/${ESCAPED_DIR}\/\?//" | \
+           sha1sum | \
+           cut -d " " -f1)
+
+echo $DIRSHA1
